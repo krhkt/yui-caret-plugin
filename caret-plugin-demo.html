@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+
+    <style>
+        html, body {
+            font-family: sans-serif;
+            color: #222;
+            background: rgb(240,254,255);
+            background: linear-gradient(rgba(246,247,255,.5) 0%, rgba(229,232,240,.5) 16%, rgba(227,236,245,.5) 100%);
+            line-height: 1.3;
+        }
+        label {
+            color: #666;
+            display: inline-block;
+            padding: 4px 0;
+        }
+        #main-container {
+            background: #fefefe;
+            padding: 16px 32px;
+            max-width: 1080px;
+            min-width: 900px;
+            margin: 16px auto;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .demo-area-wrapper {
+            padding-bottom: 8px;
+        }
+        .demo-area-wrapper::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+        .column-half {
+            box-sizing: border-box;
+            float: left;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+        input, textarea {
+            font-size: 16px;
+            padding: 4px;
+        }
+        .column-half:nth-child(1) {
+            padding-right: 12px;
+            border-right: 1px solid #888;
+            
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #888;
+            height: 0px;
+        }
+        .column-half > input, .column-half > textarea {
+            float: left;
+        }
+        .column-half .output {
+            float: left;
+            padding: 8px;
+            margin: 0 4px;
+            background: #eee;
+            border-radius: 3px;
+            min-width: 192px;
+            min-height: 80px;
+        }
+        button {
+            font-size: 16px;
+        }
+    </style>
+
+    <title>YUI Caret Plugin for Node</title>
+</head>
+
+<body>
+    <div id="main-container">
+        <h1>YUI Caret Plugin for Node</h1>
+
+        <h2>#1. Get selection indexes and content</h2>
+        <p>Mouse select a portion of the input/textarea content bellow. (or place the caret somewhere)</p>
+        <div class="demo-area-wrapper">
+            <div id="get-selection-input" class="column-half">
+                <input type="text" value="0123456789">   
+                <pre class="output"></pre>
+            </div>
+
+            <div id="get-selection-textarea" class="column-half">
+                <textarea>0123456789
+0123456789</textarea>
+                <pre class="output"></pre>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <h2>#2. Get and Set the position of the caret</h2>
+        <div class="demo-area-wrapper">
+            <div id="position-input" class="column-half">
+                <input type="text" value="0123456789">
+
+                <div class="output">
+                    <label>
+                        position: <br>
+                        <input type="text" size="4">
+                    </label><br>
+                    <button class='set'>set</button><button class='get'>get</button>
+                </div>
+            </div>
+
+            <div id="position-textarea" class="column-half">
+                <textarea>0123456789</textarea>
+                
+                <div class="output">
+                    <label>
+                        position: <br>
+                        <input type="text" size="4">
+                    </label><br>
+                    <button class='set'>set</button><button class='get'>get</button>
+                </div>
+            </div>
+        </div>
+        <hr>
+        
+        <h2>#3. Manipulating selected content</h2>
+        <p>Select a portion of the textarea/input bellow than get or set a content.</p>
+        <div class="demo-area-wrapper">
+            <div id="content-input" class="column-half">
+                <input type="text" value="0123456789">
+                <div class="output">
+                    <label>
+                        content: <br>
+                        <input type="text" size="10">
+                    </label><br>
+                    <button class='set'>set</button><button class='get'>get</button>
+                </div>
+            </div>
+            <div id="content-textarea" class="column-half">
+                <textarea>0123456789</textarea>
+                <div class="output">
+                    <label>
+                        content: <br>
+                        <input type="text" size="10">
+                    </label><br>
+                    <button class='set'>set</button><button class='get'>get</button>
+                </div>
+            </div>
+        </div>
+        <hr>
+        
+        <h2>#4. Simulating user typing</h2>
+        <p>Put a content to be "typed" and press type to simulate a user typing.<br>
+            You can change the caret position while the simulation is happening.
+        </p>
+        <div id="typing">
+            <div>
+                <label>content:<br><input id="typing-content" size="50" type="text" value="The lazy dog jumps over the quick brown fox."></label><br>
+                <label>delay:<br><input id="typing-delay" size="4" type="text" value="100"></label> <button>type</button>
+            </div>
+            <br><br>
+            <form>
+            <textarea cols="30" rows="3"> Done.</textarea><br>
+            <input size="50" type="text"><br>
+            <input type="reset" value="clear text">
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/yui/3.10.0/yui/yui-min.js" crossorigin="anonymous"></script>
+    <script src="caret-plugin.js"></script>
+    <script type="text/javascript">
+    
+    //publishing the Y to enable console access
+    window.Y = YUI().use('node', 'event', 'caret-plugin', function (Y) {
+        var L = Y.Lang;
+    
+        //applying the plugin in the Node class
+        //off course it can be pluged only in the node instance needed
+        Y.Node.plug(Y.Plugin.Caret);
+    
+        //=====[ DEMO #1 ]=====
+        function getSelectionHandler(e) {
+            var output = 'start: {start}, end: {end}\ncontent: \n{content}';
+    
+            e.container.one('.output').setHTML(L.sub(output, {
+                    start: e.target.caret.get('selectionStart'),
+                    end: e.target.caret.get('selectionEnd'),
+                    content: e.target.caret.get('content')
+                })
+            );
+        }
+    
+        Y.delegate('mouseup', getSelectionHandler, '#get-selection-input', 'input');
+        Y.delegate('keyup', getSelectionHandler, '#get-selection-input', 'input');
+        Y.delegate('mouseup', getSelectionHandler, '#get-selection-textarea', 'textarea');
+        Y.delegate('keyup', getSelectionHandler, '#get-selection-textarea', 'textarea');
+    
+    
+        //=====[ DEMO #2 ]=====
+        function getPosition(e) {
+            var position = e.container.one('input, textarea').caret.get('position');
+    
+            e.container.one('.output input').set('value', position);
+        }
+    
+        function setPosition(e) {
+            var position = e.container.one('.output input').get('value') || '0';
+    
+            e.container.one('>input, >textarea').caret.set('position', position);
+        }
+    
+        Y.delegate('click', getPosition, '#position-input', '.get');
+        Y.delegate('click', setPosition, '#position-input', '.set');
+        Y.delegate('click', getPosition, '#position-textarea', '.get');
+        Y.delegate('click', setPosition, '#position-textarea', '.set');
+    
+    
+        //=====[ DEMO #3 ]=====
+        function getContent(e) {
+            var content = e.container.one('>input, >textarea').caret.get('content');
+    
+            e.container.one('.output input').set('value', content);
+        }
+    
+        function setContent(e) {
+            var content = e.container.one('.output input').get('value');
+    
+            e.container.one('input, textarea').caret.set('content', content);
+        }
+    
+        Y.delegate('click', getContent, '#content-input', '.get');
+        Y.delegate('click', setContent, '#content-input', '.set');
+        Y.delegate('click', getContent, '#content-textarea', '.get');
+        Y.delegate('click', setContent, '#content-textarea', '.set');
+    
+    
+        //=====[ DEMO #4 ]=====
+        function typeContent(e) {
+            var content, delay,
+                input, textarea,
+                interval;
+    
+            content = e.container.one('#typing-content').get('value');
+            delay = e.container.one('#typing-delay').get('value');
+    
+            if (arguments.callee.typing) {
+                window.clearInterval(arguments.callee.typing);
+            }
+    
+            input = e.container.one('form>input');
+            textarea = e.container.one('form>textarea');
+    
+            //arguments.callee is used just to create a typing property.
+            //any closure variable would do.
+            arguments.callee.typing = interval = window.setInterval(function () {
+                arguments.callee.i || (arguments.callee.i = 0);
+    
+                if (arguments.callee.i < content.length) {
+                        //using the insert method to insert a content in the current caret position
+                        input.caret.insert(content[arguments.callee.i]);
+                        textarea.caret.insert(content[arguments.callee.i]);
+                        arguments.callee.i += 1;
+                } else {
+                    window.clearInterval(interval);
+                }
+            }, delay);
+        }
+    
+        Y.delegate('click', typeContent, '#typing', 'button');
+            
+    });
+    </script>
+    
+</body>
